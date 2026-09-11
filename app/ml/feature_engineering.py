@@ -18,6 +18,22 @@ def create_invoice_features(
         0
     )
 
+    # Handle missing OCR values safely
+    try:
+        subtotal = float(subtotal) if subtotal is not None else 0
+    except (ValueError, TypeError):
+        subtotal = 0
+
+    try:
+        tax = float(tax) if tax is not None else 0
+    except (ValueError, TypeError):
+        tax = 0
+
+    try:
+        total = float(total) if total is not None else 0
+    except (ValueError, TypeError):
+        total = 0
+
     item_count = len(items)
 
     total_quantity = sum(
@@ -37,7 +53,6 @@ def create_invoice_features(
 
         average_item_price = 0
 
-
     if subtotal > 0:
 
         tax_percentage = (
@@ -47,7 +62,6 @@ def create_invoice_features(
     else:
 
         tax_percentage = 0
-
 
     features = {
 
@@ -73,6 +87,5 @@ def create_invoice_features(
                 2
             )
     }
-
 
     return features
