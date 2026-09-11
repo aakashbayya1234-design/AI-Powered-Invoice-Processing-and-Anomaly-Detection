@@ -1,10 +1,9 @@
 import cv2
 import pytesseract
-from app.ocr.extractor import extract_text
 
-pytesseract.pytesseract.tesseract_cmd = (
-    r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-)
+#pytesseract.pytesseract.tesseract_cmd = (
+    #r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+#)
 
 
 def preprocess_image(image_path):
