@@ -4,6 +4,7 @@ from pathlib import Path
 ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
+
 import streamlit as st
 import tempfile
 import os
@@ -15,7 +16,6 @@ from app.extraction.items.item_extractor import extract_line_items
 from app.validation.invoice_validator import validate_total
 from app.ml.feature_engineering import create_invoice_features
 from app.ml.anomaly_detector import InvoiceAnomalyDetector
-
 
 
 # =========================================================
@@ -86,7 +86,7 @@ st.markdown(
 
 st.markdown(
     '<div class="subtitle">'
-    'OCR • AI Extraction • Validation • ML Anomaly Detection • Gemini AI'
+    'OCR • Invoice Extraction • Validation • ML Anomaly Detection'
     '</div>',
     unsafe_allow_html=True
 )
@@ -152,7 +152,6 @@ if uploaded_file is not None:
 
             image_path = temp_file.name
 
-
         try:
 
             # =================================================
@@ -182,6 +181,23 @@ if uploaded_file is not None:
 
 
             # =================================================
+            # SAFETY — HANDLE MISSING VALUES
+            # =================================================
+
+            if invoice_data is None:
+                invoice_data = {}
+
+            # Replace None values with safe defaults
+            for key in [
+                "subtotal",
+                "tax",
+                "total"
+            ]:
+                if invoice_data.get(key) is None:
+                    invoice_data[key] = 0
+
+
+            # =================================================
             # STEP 3 — LINE ITEMS
             # =================================================
 
@@ -190,6 +206,9 @@ if uploaded_file is not None:
                 line_items = extract_line_items(
                     ocr_text
                 )
+
+            if line_items is None:
+                line_items = []
 
             st.success("Line items extracted")
 
@@ -203,6 +222,24 @@ if uploaded_file is not None:
                 validation = validate_total(
                     invoice_data
                 )
+
+            if validation is None:
+                validation = {}
+
+            # Safely handle validation values
+            expected_total = validation.get(
+                "expected_total"
+            )
+
+            difference = validation.get(
+                "difference"
+            )
+
+            if expected_total is None:
+                expected_total = 0
+
+            if difference is None:
+                difference = 0
 
             st.success("Validation completed")
 
@@ -300,8 +337,6 @@ if uploaded_file is not None:
                 ]
 
 
-
-
             # =================================================
             # FINAL STATUS
             # =================================================
@@ -370,36 +405,40 @@ if uploaded_file is not None:
 
             col1, col2, col3, col4 = st.columns(4)
 
+
+            vendor = invoice_data.get("vendor") or "N/A"
+            invoice_number = (
+                invoice_data.get("invoice_number")
+                or "N/A"
+            )
+            invoice_date = (
+                invoice_data.get("invoice_date")
+                or "N/A"
+            )
+            due_date = (
+                invoice_data.get("due_date")
+                or "N/A"
+            )
+
+
             col1.metric(
                 "Vendor",
-                invoice_data.get(
-                    "vendor",
-                    "N/A"
-                )
+                vendor
             )
 
             col2.metric(
                 "Invoice Number",
-                invoice_data.get(
-                    "invoice_number",
-                    "N/A"
-                )
+                invoice_number
             )
 
             col3.metric(
                 "Invoice Date",
-                invoice_data.get(
-                    "invoice_date",
-                    "N/A"
-                )
+                invoice_date
             )
 
             col4.metric(
                 "Due Date",
-                invoice_data.get(
-                    "due_date",
-                    "N/A"
-                )
+                due_date
             )
 
 
@@ -413,25 +452,44 @@ if uploaded_file is not None:
 
             col1, col2, col3 = st.columns(3)
 
+
+            subtotal = invoice_data.get(
+                "subtotal"
+            ) or 0
+
+            tax = invoice_data.get(
+                "tax"
+            ) or 0
+
+            total = invoice_data.get(
+                "total"
+            ) or 0
+
+
             col1.metric(
                 "Subtotal",
-                f"₹{invoice_data.get('subtotal', 0):,.2f}"
+                f"₹{float(subtotal):,.2f}"
             )
 
             col2.metric(
                 "GST",
-                f"₹{invoice_data.get('tax', 0):,.2f}"
+                f"₹{float(tax):,.2f}"
             )
 
             col3.metric(
                 "Total",
-                f"₹{invoice_data.get('total', 0):,.2f}"
+                f"₹{float(total):,.2f}"
             )
 
 
+            tax_percentage = (
+                features.get("tax_percentage")
+                or 0
+            )
+
             st.write(
                 f"**GST Rate:** "
-                f"{features.get('tax_percentage', 0):.2f}%"
+                f"{float(tax_percentage):.2f}%"
             )
 
 
@@ -472,22 +530,28 @@ if uploaded_file is not None:
 
             col1, col2, col3 = st.columns(3)
 
+
+            validation_status = (
+                validation.get("status")
+                or "UNKNOWN"
+            )
+
+
             col1.metric(
                 "Status",
-                validation.get(
-                    "status",
-                    "UNKNOWN"
-                )
+                validation_status
             )
+
 
             col2.metric(
                 "Expected Total",
-                f"₹{validation.get('expected_total', 0):,.2f}"
+                f"₹{float(expected_total):,.2f}"
             )
+
 
             col3.metric(
                 "Difference",
-                f"₹{validation.get('difference', 0):,.2f}"
+                f"₹{float(difference):,.2f}"
             )
 
 
@@ -500,6 +564,7 @@ if uploaded_file is not None:
             )
 
             col1, col2 = st.columns(2)
+
 
             col1.metric(
                 "Risk Status",
@@ -537,7 +602,8 @@ if uploaded_file is not None:
                     ocr_text
                 )
 
-            # ================================================
+
+            # =================================================
             # SUCCESS MESSAGE
             # =================================================
 
@@ -591,7 +657,7 @@ else:
 
     col2.write(
         "🔍 **2. Extract**\n\n"
-        "OCR and AI extract invoice information."
+        "OCR extracts invoice information."
     )
 
     col3.write(
