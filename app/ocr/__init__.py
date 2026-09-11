@@ -1,4 +1,3 @@
-app/ocr/__init__.py
 app/extraction/__init__.py
 app/ml/__init__.py
 app/validation/__init__.py
