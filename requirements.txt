@@ -1,3 +1,4 @@
+streamlit
 opencv-python
 pytesseract
 Pillow
@@ -7,3 +8,5 @@ scikit-learn
 fastapi
 uvicorn
 python-multipart
+python-dotenv
+google-genai
