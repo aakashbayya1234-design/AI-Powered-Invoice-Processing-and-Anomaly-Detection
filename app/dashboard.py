@@ -15,8 +15,7 @@ from app.extraction.items.item_extractor import extract_line_items
 from app.validation.invoice_validator import validate_total
 from app.ml.feature_engineering import create_invoice_features
 from app.ml.anomaly_detector import InvoiceAnomalyDetector
-from app.llm.invoice_ai import InvoiceAI
-from app.agent import InvoiceAgent
+
 
 
 # =========================================================
@@ -105,8 +104,6 @@ st.sidebar.write("✅ Line Item Extraction")
 st.sidebar.write("✅ Invoice Validation")
 st.sidebar.write("✅ Feature Engineering")
 st.sidebar.write("✅ ML Anomaly Detection")
-st.sidebar.write("✅ Gemini AI Analysis")
-st.sidebar.write("✅ Agent Decision")
 
 
 # =========================================================
@@ -303,52 +300,6 @@ if uploaded_file is not None:
                 ]
 
 
-            # =================================================
-            # STEP 7 — GEMINI AI
-            # =================================================
-
-            with st.spinner(
-                "Generating AI invoice analysis..."
-            ):
-
-                ai = InvoiceAI()
-
-                analysis = ai.analyze_invoice(
-
-                    invoice_data,
-
-                    line_items,
-
-                    validation,
-
-                    anomaly_status,
-
-                    anomaly_score
-                )
-
-
-            # =================================================
-            # STEP 8 — AGENT
-            # =================================================
-
-            with st.spinner(
-                "Generating agent decision..."
-            ):
-
-                agent = InvoiceAgent()
-
-                decision = agent.decide_action(
-
-                    invoice_data,
-
-                    validation,
-
-                    anomaly_status,
-
-                    anomaly_score,
-
-                    None
-                )
 
 
             # =================================================
@@ -586,34 +537,7 @@ if uploaded_file is not None:
                     ocr_text
                 )
 
-
-            # =================================================
-            # GEMINI ANALYSIS
-            # =================================================
-
-            st.subheader(
-                "🧠 Gemini AI Analysis"
-            )
-
-            st.info(
-                analysis
-            )
-
-
-            # =================================================
-            # AGENT DECISION
-            # =================================================
-
-            st.subheader(
-                "🤖 Agent Decision"
-            )
-
-            st.warning(
-                decision
-            )
-
-
-            # =================================================
+            # ================================================
             # SUCCESS MESSAGE
             # =================================================
 
